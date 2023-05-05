@@ -139,7 +139,7 @@ if __name__ == "__main__":
     argparser.add_argument("--PLOT_PREDICT", type=bool, default=True)
     argparser.add_argument("--LINEAR_DECODER", type=bool, default=False)
     argparser.add_argument("--test_size", type=float, default=0.2)
-    argparser.add_argument("--batch_size", type=int, default=32)
+    argparser.add_argument("--batch_size", type=int, default=1)
     argparser.add_argument("--dim_val", type=int, default=512)
     argparser.add_argument("--n_heads", type=int, default=8)
     argparser.add_argument("--n_decoder_layers", type=int, default=4)
