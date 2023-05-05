@@ -1,0 +1,7 @@
+torch
+torch-sparse -f https://pytorch-geometric.com/whl/torch-2.0.0+cu118.html
+torch-scatter -f https://pytorch-geometric.com/whl/torch-2.0.0+cu118.html
+torch-cluster -f https://pytorch-geometric.com/whl/torch-2.0.0+cu118.html
+torch-geometric -f https://pytorch-geometric.com/whl/torch-2.0.0+cu118.html
+transformers
+sklearn
