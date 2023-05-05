@@ -191,7 +191,7 @@ if __name__ == "__main__":
     argparser.add_argument("--test_size", type=float, default=0.2)
     argparser.add_argument("--batch_size", type=int, default=1)
     argparser.add_argument("--dim_val", type=int, default=512)
-    argparser.add_argument("--n_heads", type=int, default=8)
+    argparser.add_argument("--n_heads", type=int, default=1)
     argparser.add_argument("--n_decoder_layers", type=int, default=4)
     argparser.add_argument("--n_encoder_layers", type=int, default=4)
     argparser.add_argument("--enc_seq_len", type=int, default=4,
@@ -308,7 +308,7 @@ if __name__ == "__main__":
         num_predicted_features=input_size # 1 if univariate
         ).to(device)
     
-    model_spatial = GATAE(in_channels=input_size, hidden_channels=args.dim_val, out_channels=input_size, output_seq_len=args.output_seq_len,n_heads=args.n_heads).to(device)
+    model_spatial = GATAE(in_channels=input_size, hidden_channels=args.dim_val, out_channels=input_size, output_seq_len=args.output_seq_len,nheads=args.n_heads).to(device)
 
 
     # Make src mask for decoder with size:
