@@ -304,10 +304,11 @@ if __name__ == "__main__":
     model_temporal = tst.TimeSeriesTransformer(
         input_size=input_size,
         batch_first=args.batch_first,
+        n_heads=args.n_heads,
         num_predicted_features=input_size # 1 if univariate
         ).to(device)
     
-    model_spatial = GATAE(in_channels=input_size, hidden_channels=args.dim_val, out_channels=input_size, output_seq_len=args.output_seq_len).to(device)
+    model_spatial = GATAE(in_channels=input_size, hidden_channels=args.dim_val, out_channels=input_size, output_seq_len=args.output_seq_len,n_heads=args.n_heads,).to(device)
 
 
     # Make src mask for decoder with size:
