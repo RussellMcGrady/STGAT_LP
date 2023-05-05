@@ -153,10 +153,10 @@ def test(model, data, device):
 
     return auc, ap
 
-def predict_link(model, data, node_a, node_b, device):
+def predict_link(model, data, x, node_a, node_b, device):
     model.eval()
     with torch.no_grad():
-        z = model(data.x.to(device), data.train_pos_edge_index.to(device))
+        _, z = model(x.to(device), data.edge_index.to(device))
         score = torch.sigmoid((z[node_a] * z[node_b]).sum())
     return score.item()
 
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     argparser.add_argument("--num_epochs", type=int, default=50)
     argparser.add_argument("--test_size", type=float, default=0.2)
     argparser.add_argument("--batch_size", type=int, default=1)
-    argparser.add_argument("--dim_val", type=int, default=512)
+    argparser.add_argument("--dim_val", type=int, default=64)
     argparser.add_argument("--n_heads", type=int, default=8)
     argparser.add_argument("--n_decoder_layers", type=int, default=4)
     argparser.add_argument("--n_encoder_layers", type=int, default=4)

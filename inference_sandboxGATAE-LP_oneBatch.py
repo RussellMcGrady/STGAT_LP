@@ -91,6 +91,7 @@ def eval(model_temporal, model_spatial, test_time_data, test_data, src_mask, tgt
         output = output.view(B,N,T,E).contiguous().view(-1, T*E)
         
         auc, ap = test(model_spatial, test_data, output, device)
+        #predict_link(model_spatial, test_data, output, 0, 5, device)
         print('| auc {:3f} | ap {:3f} '.format(auc, ap))
         
 
@@ -114,7 +115,7 @@ def test(model, data, x, device):
 def predict_link(model, data, x, node_a, node_b, device):
     model.eval()
     with torch.no_grad():
-        z = model(x.to(device), data.train_pos_edge_index.to(device))
+        _, z = model(x.to(device), data.edge_index.to(device))
         score = torch.sigmoid((z[node_a] * z[node_b]).sum())
     return score.item()
 
@@ -139,7 +140,7 @@ if __name__ == "__main__":
     argparser.add_argument("--LINEAR_DECODER", type=bool, default=False)
     argparser.add_argument("--test_size", type=float, default=0.2)
     argparser.add_argument("--batch_size", type=int, default=32)
-    argparser.add_argument("--dim_val", type=int, default=512)
+    argparser.add_argument("--dim_val", type=int, default=64)
     argparser.add_argument("--n_heads", type=int, default=8)
     argparser.add_argument("--n_decoder_layers", type=int, default=4)
     argparser.add_argument("--n_encoder_layers", type=int, default=4)
