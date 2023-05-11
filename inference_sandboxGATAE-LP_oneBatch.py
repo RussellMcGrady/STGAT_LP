@@ -42,57 +42,58 @@ def eval(model_temporal, model_spatial, test_time_data, test_data, src_mask, tgt
     model_temporal.eval()
     model_spatial.eval()
 
-    for _, batch in enumerate(test_time_data):
-        # output = torch.Tensor([]).to(device).requires_grad_(True)
-        src, trg, trg_y = batch
-        B, N, T, E = trg_y.size()
-        if input_size == 1: # feature size = 1
-            trg_y.unsqueeze(2)
-        src, trg, trg_y = src.to(device), trg.to(device), trg_y.to(device)
-        
+    with torch.no_grad():
+        for _, batch in enumerate(test_time_data):
+            # output = torch.Tensor([]).to(device).requires_grad_(True)
+            src, trg, trg_y = batch
+            B, N, T, E = trg_y.size()
+            if input_size == 1: # feature size = 1
+                trg_y.unsqueeze(2)
+            src, trg, trg_y = src.to(device), trg.to(device), trg_y.to(device)
+            
 
-        # Permute from shape [batch size, node size, seq len, num features] to [seq len, batch size, node size, num features]
-        if batch_first == False:
-            src = src.permute(2, 0, 1, 3)
-            trg = trg.permute(2, 0, 1, 3)
-            trg_y = trg_y.permute(2, 0, 1, 3)
+            # Permute from shape [batch size, node size, seq len, num features] to [seq len, batch size, node size, num features]
+            if batch_first == False:
+                src = src.permute(2, 0, 1, 3)
+                trg = trg.permute(2, 0, 1, 3)
+                trg_y = trg_y.permute(2, 0, 1, 3)
 
-        # inference on the length of the output window
-        # [seq len, batch size*node size, num features] 
-        # Node dimension is put inside the batch, in order to process each node along the time separately
-        src_B = src.view(src.size()[0], src.size()[1] * src.size()[2], src.size()[3])
-        trg_B = trg.view(trg.size()[0], trg.size()[1] * trg.size()[2], trg.size()[3])
-        trg_y_B = trg_y.view(trg_y.size()[0], trg_y.size()[1] * trg_y.size()[2], trg_y.size()[3])
+            # inference on the length of the output window
+            # [seq len, batch size*node size, num features] 
+            # Node dimension is put inside the batch, in order to process each node along the time separately
+            src_B = src.view(src.size()[0], src.size()[1] * src.size()[2], src.size()[3])
+            trg_B = trg.view(trg.size()[0], trg.size()[1] * trg.size()[2], trg.size()[3])
+            trg_y_B = trg_y.view(trg_y.size()[0], trg_y.size()[1] * trg_y.size()[2], trg_y.size()[3])
 
-        prediction = model_temporal(
-            src=src_B,
-            tgt=trg_B,
-            src_mask=src_mask,
-            tgt_mask=tgt_mask,
-            linear_decoder=LINEAR_DECODER
-        )
-        # outputTmp = torch.cat((trg_B, prediction), dim=0) # try [trg||prediction]
-        # outputTmp = prediction
-        # output = torch.cat((output, outputTmp), dim=1)
-        output = prediction + trg_B
+            prediction = model_temporal(
+                src=src_B,
+                tgt=trg_B,
+                src_mask=src_mask,
+                tgt_mask=tgt_mask,
+                linear_decoder=LINEAR_DECODER
+            )
+            # outputTmp = torch.cat((trg_B, prediction), dim=0) # try [trg||prediction]
+            # outputTmp = prediction
+            # output = torch.cat((output, outputTmp), dim=1)
+            output = prediction + trg_B
 
-        # # reverse scaler
-        # prediction = scaler.inverse_transform(prediction.view(-1, input_size)) # .detach().cpu()
-        # prediction = prediction.view(T, -1, E)
-        # trg_y = scaler.inverse_transform(trg_y.contiguous().view(-1, input_size))
-        # trg_y = trg_y.view(T, -1, E)
+            # # reverse scaler
+            # prediction = scaler.inverse_transform(prediction.view(-1, input_size)) # .detach().cpu()
+            # prediction = prediction.view(T, -1, E)
+            # trg_y = scaler.inverse_transform(trg_y.contiguous().view(-1, input_size))
+            # trg_y = trg_y.view(T, -1, E)
 
-        # if batch_first == False:
-        #     prediction = prediction.permute(1, 0, 2)
-        #     trg_y_B = trg_y_B.permute(1, 0, 2)
+            # if batch_first == False:
+            #     prediction = prediction.permute(1, 0, 2)
+            #     trg_y_B = trg_y_B.permute(1, 0, 2)
 
-        if batch_first == False:
-            output = output.permute(1, 0, 2)
-        output = output.view(B,N,T,E).contiguous().view(-1, T*E)
-        
-        auc, ap = test(model_spatial, test_data, output, device)
-        #predict_link(model_spatial, test_data, output, 0, 5, device)
-        print('| auc {:3f} | ap {:3f} '.format(auc, ap))
+            if batch_first == False:
+                output = output.permute(1, 0, 2)
+            output = output.view(B,N,T,E).contiguous().view(-1, T*E)
+            
+            auc, ap = test(model_spatial, test_data, output, device)
+            score = predict_link(model_spatial, test_data, output, 67, 175, device)
+            print('| AUC-ROC {:3f} | AUC-PR {:3f} | nodePair score {:3f}'.format(auc, ap, score))
         
 
 
@@ -141,7 +142,7 @@ if __name__ == "__main__":
     argparser.add_argument("--test_size", type=float, default=0.2)
     argparser.add_argument("--batch_size", type=int, default=1)
     argparser.add_argument("--dim_val", type=int, default=512)
-    argparser.add_argument("--n_heads", type=int, default=1)
+    argparser.add_argument("--n_heads", type=int, default=8)
     argparser.add_argument("--n_decoder_layers", type=int, default=4)
     argparser.add_argument("--n_encoder_layers", type=int, default=4)
     argparser.add_argument("--enc_seq_len", type=int, default=4,
@@ -275,6 +276,8 @@ if __name__ == "__main__":
         input_size=input_size,
         batch_first=args.batch_first,
         n_heads=args.n_heads,
+        n_encoder_layers=args.n_encoder_layers,
+        n_decoder_layers=args.n_decoder_layers,
         num_predicted_features=input_size # 1 if univariate
         ).to(device)
 

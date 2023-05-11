@@ -127,7 +127,7 @@ class TimeSeriesTransformer(nn.Module):
             d_model=dim_val,
             dropout=dropout_pos_enc
             )
-        # # Create positional decoder
+        # Create positional decoder
         self.positional_decoding_layer = PositionalEncoder(
             d_model=dim_val,
             dropout=dropout_pos_enc
